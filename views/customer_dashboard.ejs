@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang ="en">
+<!-- Render head tag partial here -->
+<% include partials/head.ejs %>
+
+<!-- Including Messages -->
+<%- messages('message', locals) %>
+
+<% if (typeof errors == 'object' && errors) { %>
+<% for (var i = 0; i < errors.length; i++) {  %>
+<div class="alert alert-danger alert-dismissible"> 
+  <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+  <%=errors[i].msg %>           
+</div>
+<% } %>
+<% } %>
+<body>
+  <!-- *************** TOP BAR ******************  -->
+  <div class="container bg-light">
+    <div class="row border border-dark" style="background-color: black" >
+      <div class="col-sm-4">
+        <img src="/Media/logo.png" class="img-responsive" width="350">
+      </div>
+    </div>
+    <br>
+    <div>
+      <span class="h3"><%= customer.name %> 's Dashboard</span>
+      <% if(session_user.usertype === 'admin') { %>  
+      <button onclick="location.href = '/admin';" class="btn btn-warning">Return to Admin Dashboard</button>
+      <% } %>
+      <% include partials/logout.ejs %>
+    </div>
+    <div class = "row mt-3">
+      <nav>
+        <div class="nav nav-tabs" id="nav-tab" role="tablist">
+          <a class="nav-item nav-link active" id="nav-browse-tab" data-toggle="tab" href="#nav-browse" role="tab" aria-controls="nav-browse" aria-selected="true">Browse Dishes</a>
+          <!-- <a class="nav-item nav-link" id="nav-active-orders-tab" data-toggle="tab" href="#nav-active-orders" role="tab" aria-controls="nav-active-orders" aria-selected="false">Active Orders <span class="badge badge-danger">1</span></a> -->
+          <a class="nav-item nav-link" id="nav-pending-orders-tab" data-toggle="tab" href="#nav-pending-orders" role="tab" aria-controls="nav-pending-orders" aria-selected="false">Pending Orders <span class="badge badge-danger"><%=customer.orders.length%></span></a>
+          <a class="nav-item nav-link" id="nav-order-history-tab" data-toggle="tab" href="#nav-order-history" role="tab" aria-controls="nav-order-history" aria-selected="false">Accepted Orders <span class="badge badge-danger"><%=customer.transactions.length%></span></a>
+          <a class="nav-item nav-link" id="nav-profile-setttings-tab" data-toggle="tab" href="#nav-profile-setttings" role="tab">Your Profile</a>
+        </div>
+      </nav>
+    </div>
+    <div class="tab-content" id="nav-tabContent">
+      <div class="tab-pane fade show active" id="nav-browse" role="tabpanel" aria-labelledby="nav-home-tab">
+        <br>
+        <h4>Browse Dishes</h4>
+		<h5>Please note down the chef's phone number before ordering!</h5>
+        <br>
+        <!-- Dynamically loading all dishes from the database-->
+        <div class="card-deck">
+          <% for(let i = chefs.length-1; i >= 0; i--) { %>
+          <% for(let j = chefs[i].dishes.length-1; j >= 0; j--) { %>
+          <div class="col-3">
+            <div class="card mb-3">
+              <img class="card-img-top" src="<%= chefs[i].dishes[j].imageURL %>">
+              <div class="card-body">
+                <h5 class="card-title"><%= chefs[i].dishes[j].title %></h5>
+                <span class="price">$<%= chefs[i].dishes[j].price %></span>
+                <p class="card-text"><%= chefs[i].dishes[j].description %></p>
+              </div>
+              <button type="button" class="order-now-button btn btn-primary" id="<%= chefs[i].dishes[j]._id%>" >Order Now</button>
+              <div class="card-footer">
+                <div class="text-muted">
+                  <span class="text-dark"> Contact Chef <%= chefs[i].name %> @ <%= chefs[i].phone %> </span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <% } %>
+          <% } %>
+        </div> 
+        <br>
+      </div><!-- Closing "Browse Dishes" tab -->
+<!--        
+      <div class="tab-pane fade" id="nav-active-orders" role="tabpanel">
+        <br>
+        <h4>Active Orders</h4>
+        <br>
+
+        <div class="card w-50">
+          <img class="card-img-top" src="./Media/back1.jpg">
+          <div class="card-body">
+            <h5 class="card-title">Gourment Burger</h5>
+            <span class="price">$5.00</span>
+            <p class="card-text">Homemade burger and Fries. Beef Patty is 200g</p>
+          </div>
+          <button type="button" class="btn btn-success" disabled>Order Accepted! <br> Please pick up in 15 mins </button>
+          <div class="card-footer">
+            <small class="text-muted">
+              Posted 6 hours ago
+              <br>
+              Pick up is 11 mins away
+              <br>
+              <br> 
+              by Chef Sarosh
+              <span class="fa fa-star star-checked"></span>
+              <span class="fa fa-star star-checked"></span>
+              <span class="fa fa-star star-checked"></span>
+              <span class="fa fa-star star-checked"></span>
+              <span class="fa fa-star"></span>
+              <br>
+            </small>
+            <br>
+            <span class="text-danger">Expires in 12 hours</span>
+          </div>
+        </div>
+        <br>
+      </div> -->
+
+      <div class="tab-pane fade" id="nav-pending-orders" role="tabpanel" aria-labelledby="nav-contact-tab">
+        <br>
+        <h4>Pending Orders</h4>
+        <br>
+
+        <div class="card-deck">
+          <% for (var i = 0; i < customer.orders.length; i++) {%>
+          <div class="col-3">
+            <div class="card mb-3" >
+              <img class="card-img-top" src="<%= customer.orders[i].dish.imageURL%>">
+              <div class="card-body">
+                <h5 class="card-title"><%= customer.orders[i].dish.title %></h5>
+                <span class="price">$<%= customer.orders[i].dish.price %></span>
+                <p class="card-text"><%= customer.orders[i].dish.description %></p>
+              </div>
+              <button type="button" class="btn btn-warning disabled">Waiting for Chef to Accept</button>
+            </div>
+            <br>
+          </div>
+          <% } %>
+        </div>
+      </div>
+
+
+      <!-- Sampler  -->
+
+      <div class="tab-pane fade" id="nav-order-history" aria-labelledby="nav-contact-tab">
+        <br>
+        <h4>Accepted Orders</h4>
+        <br>
+        <div class="card-deck">
+
+          <% for(let i = 0; i < customer.transactions.length; i++) { %>
+          <!-- <div class="row"> -->
+            <div class="col-3">
+
+              <div class="card mb-3">
+                <!-- FILL IN THE DISH IMAGE URL -->
+                <img class="card-img-top" src="<%= customer.transactions[i].dish.imageURL%>">
+                <div class="card-body">
+                  <h5 class="card-title"><%= customer.transactions[i].dish.title %></h5>
+                  <span class="price">$<%= customer.transactions[i].dish.price %></span>
+                  <p class="card-text"><%= customer.transactions[i].dish.description %></p>
+                </div>
+                <button type="button" class="btn btn-success disabled">Please coordinate pickup!</button>
+              </div>
+            </div>
+            <% } %>
+          </div>
+        </div>
+        <!--  -->
+<!-- 
+      <div class="tab-pane fade" id="nav-order-history" role="tabpanel" aria-labelledby="nav-contact-tab">
+        <br>
+        <h4>Order History</h4>
+        <br>
+        <div class="card-deck">
+
+          <div class="card">
+            <img class="card-img-top" src="">
+            <div class="card-body">
+              <h5 class="card-title">Fajita Pizza</h5>
+              <span class="price">$3.00</span>
+              <p class="card-text">Homemade pizza made in a 12 inch pan. Thick Crust. Medium Spicy. </p>
+            </div>
+            <div class="alert alert-dark" role="alert">
+              Ordered 2 days ago at 8:55pm.
+            </div>
+            <div class="card-footer">
+              <small class="text-muted"> 
+                by Chef Muqit
+                <span class="fa fa-star star-checked"></span>
+                <span class="fa fa-star star-checked"></span>
+                <span class="fa fa-star star-checked"></span>
+                <span class="fa fa-star star-checked"></span>
+                <span class="fa fa-star star-checked"></span>
+              </small>
+              <br>
+            </div>
+          </div>
+          <br><br>
+          <div class="card">
+            <img class="card-img-top" src="./Media/biryani.jpg">
+            <div class="card-body">
+              <h5 class="card-title">Chicken Korma</h5>
+              <span class="price">$5.00</span>
+              <p class="card-text">200g of Chicken Korma with parsley and green onions. Medium Spicey</p>
+            </div>
+            <div class="alert alert-dark" role="alert">
+              Ordered 3 days ago at 11:55am.
+            </div>
+            <div class="card-footer">
+              <small class="text-muted"> 
+                by Chef Muqit
+                <span class="fa fa-star star-checked"></span>
+                <span class="fa fa-star star-checked"></span>
+                <span class="fa fa-star star-checked"></span>
+                <span class="fa fa-star star-checked"></span>
+                <span class="fa fa-star star-checked"></span>
+              </small>
+              <br>
+            </div>
+          </div>
+        </div>
+        <br>
+      </div>
+    -->
+
+
+    <div class="tab-pane fade" id="nav-profile-setttings" role="tabpanel">
+      <br>
+      <h4>Your Profile</h4>
+      <br>
+          <!-- <div class="form-group row">
+            <label class="col-sm-2 col-form-label">Email:</label>
+            <div class="col-sm-3">
+              <input type="email" class="form-control form-control-sm mt-1" id="email" name="email" disabled>
+            </div>
+          </div> -->
+          <form action="/Changecustpass/<%= customer._id %>/" method="POST">
+          <div class="form-group row">
+            <label for="passwdCurrent" class="col-sm-2 col-form-label">Current Password:</label>
+            <div class="col-sm-3">
+              <input type="password" class="form-control form-control-sm mt-1" id="passwdCurrent" name="oldpass">
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="passwdNew" class="col-sm-2 col-form-label">New Password:</label>
+            <div class="col-sm-3">
+              <input type="password" class="form-control form-control-sm mt-1" id="passwdNew" name="newpass">
+            </div>
+          </div>
+          <div class="form-group row">
+            <div class="col-sm-10">
+              <button type="submit" id="change_pwd_button" class="btn btn-secondary">Change Password</button>
+            </div>
+          </div>
+          <br>
+          
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+  <% include partials/footer.ejs %>
+  <!-- JQUERY for DOM Manipulation-->
+  <script>
+    $(document).ready(function(){
+
+        //Pressed Order NOW.
+        $('.order-now-button').click(function(){
+          // alert('ORDERED');
+          // console.log("SEXYYYYYYYY");
+          const dishId = $(this).attr('id') //because id attribute of delete button was set to db id of dish
+          const customerId = "<%= customer._id %>"          
+          // console.log(`----------------- customerID: ${customerId}`)
+
+          //Handle the POST REQUEST for making the order
+          $.ajax({
+            method: "POST",
+            url: "/orders/" + customerId + "/" + dishId,
+            success: function(res) {
+              //alert('Succesfully Ordered')
+              const redirect = "/customers/" + customerId
+              window.location.href= redirect
+            },
+            error: function(err){
+              alert("Could not Order. Check console for error message.")
+              console.log(err)
+            }
+          })
+
+        })
+
+      });
+
+    </script>
+  </body>
+  </html>

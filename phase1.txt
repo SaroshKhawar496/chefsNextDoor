@@ -1,0 +1,71 @@
+# team26 phase1.txt
+
+
+
+Our HomePage (index.html) introduces the user to the "Chefs Next Door" by providing an overview of what this service is about and how a user can use this service (i.e as Chef or Customer). 
+
+A user can use our services either as a chef or customer. The end user interaction with our system is explained below:
+
+***AS A CHEF*** 
+
+>> Home Page
+
+New chefs can sign up by using the "Chef" button below the carousel. They will be asked to complete a form. Once completed, the chefs can use their credentials to sign-into their dashboards. 
+
+**Dummy account for testing:**
+Email: chef@gmail.com
+Password: chef
+
+>> Dashboard View
+
+Here the chefs will have access to 3 tabs: Active Postings, Active Requests and their profile information.
+
+Active Postings: Allows chefs to add new posting, edit original postings and delete them before they automatically expire.
+
+Active Requests: Allows chef to either accept or reject the requests. Either selection will send a notification to the customer who has made the original request.
+
+Profile Information: Allows chefs to view their profile information and make a request to the admin to change their information. Password can be changed using "change password" button.
+
+The "Logout" button on banner will take the chefs to the HomePage. 
+
+
+***AS A CUSTOMER***
+
+>> Home Page
+
+New customers can sign up by using the "Customer" button below the carousel. They will be asked to complete a form. Once completed, the customers can use their credentials to sign-into their dashboards. 
+
+**Dummy account for testing:**
+Email: customer@gmail.com
+Password: customer
+
+
+>> Dashboard View
+
+Here the chefs will have access to 5 tabs: Browse Dishes, Active Orders, Pending Orders, Order History and Profile information.
+
+Browse Dishes: Allows customers to view all new food posting (price, chef's rating and other general information) and order food.
+
+Active Orders: Allows customers to view their active (accepted by the chef) orders.
+
+Pending Orders: Allows customers to view their pending (no response from the chef) orders. 
+
+Order History: Allows customers to view all the successful orders they have places so far. 
+
+Profile information: Allows customers to view their profile information and make a request to the admin to change their information. Password can be changed using "change password" button.
+
+
+The "Logout" button on banner will take the customers to the HomePage.
+
+
+
+***Instructions for ADMIN***
+
+** Dummy account for testing:**
+Email: admin@gmail.com
+Password: admin
+
+Allows the admin to search for all the users (customers & chefs), view their profiles and delete the user account in case of serious complaints.
+
+
+

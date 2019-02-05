@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<!-- Render head tag partial here -->
+<% include partials/head.ejs %>
+<body>
+  <!-- *************** TOP BAR ******************  -->
+  <div class="container bg-light">
+    <div class="row border border-dark" style="background-color: black" >
+      <div class="col-sm-4">
+        <img src="/Media/logo.png" class="img-responsive" width="350">
+      </div>
+    </div>
+      <!-- NOTES: 
+        1. THe admin will have full control over other accounts. Admin will be able to search among all the current website user with the provided search box.
+        2. The table below will be updated based on the search and Admin can either Visit the Profile or Delete the User account.
+        3. All the actions will be processed by the server and DataBase will updated if necessary               
+      -->
+      <br>
+      <div>
+        <span class="h3"><%= admin.name %> 's Dashboard</span>
+        <% include partials/logout.ejs %>
+      </div>
+      <br>
+      <div class="row">
+        <div id="ChefNavOptView" class="col-sm-10 pt-2 pl-3 offset-" >
+          <h4>Search User</h4>
+          <div class="pt-2">
+            <form class="form-inline">					
+              <input type="text" class="form-control mr-sm-2" id="UserNameBox" placeholder="Enter User's Name">
+              <button disabled type="button" class="btn btn-outline-success" id="SearchUserButton">Search</button>
+            </form>
+          </div>
+          
+          <div class="mt-2">
+            <table class="table table-bordered nobreak" table-layout: fixed>
+              <thead>
+                <tr>
+                  <th scope="col">User Id</th>
+                  <th scope="col">User Name</th>
+                  <th scope="col">Role</th>
+                  <th scope="col">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                
+                <% for(let i = 0; i < users.length; i++) { %>
+                <% if (users[i].usertype != 'admin') {%>
+                <tr>
+                  <th scope="row"><%= i %></th>
+                  <td><%= users[i].name %></td>
+                  <td><%= users[i].usertype %></td>
+                  <td>
+                    <form action="/<%= users[i].usertype %>s/<%= users[i]._id %>" method="GET">
+                      <button type="submit" class="btn btn-outline-dark see-profile-button">See Profile</button>
+                    </form>
+                    <button id="<%= users[i]._id %>" type="button" class="btn btn-outline-danger delete-user-button">Delete User</button>
+                  </td>
+                </tr>
+                <% } %>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <br>
+    </div>
+    <!-- Render head tag partial here -->
+    <% include partials/footer.ejs %>
+    <!-- Note: Pressing the Logout Button will take the Admin back to homepage. -->
+    <script>
+      $(document).ready(function(){
+        $('.delete-user-button').click(function(){
+          const id = $(this).attr('id') //because id attribute of delete button was set to db id of dish
+          $.ajax({
+            method: "DELETE",
+            url: "/users/" + id,
+            success: function(res) {
+              alert('Succesfully deleted')
+              window.location.href= '/admin' 
+            },
+            error: function(err){
+              alert("Could not delete. Check console for error message.")
+              console.log(err)
+            }
+          })
+        })
+        
+      });
+      
+    </script>
+  </body>
+  </html>

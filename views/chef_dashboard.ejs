@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html>
+<!-- Render head tag partial here -->
+<% include partials/head.ejs %>
+
+<!-- Including Messages -->
+<%- messages('message', locals) %>
+
+<% if (typeof errors == 'object' && errors) { %>
+  <% for (var i = 0; i < errors.length; i++) {  %>
+    <div class="alert alert-danger alert-dismissible"> 
+      <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+      <%=errors[i].msg %>           
+    </div>
+  <% } %>
+<% } %>
+
+<body>
+  <!-- *************** TOP BAR ******************  -->
+  <div class="container bg-light">
+    <!-- Render header partial here -->
+    <% include partials/header.ejs %>
+
+    <div>
+      <span class="h3">Chef <%= chef.name %> 's Dashboard</span>
+      <% if(session_user.usertype === 'admin') { %>  
+      <button onclick="location.href = '/admin';" class="btn btn-warning">Return to Admin Dashboard</button>
+      <% } %>  
+      <% include partials/logout.ejs %>
+    </div>
+
+    <!-- Nav bar  -->
+    <div class = "row mt-3">
+      <nav>
+        <div class="nav nav-tabs" id="nav-tab" role="tablist">
+          <a class="nav-item nav-link active" id="nav-postings-tab" data-toggle="tab" href="#nav-postings" role="tab">Your Postings <span class="badge badge-success"><%=chef.dishes.length%></span></a>
+          <a class="nav-item nav-link" id="nav-active-requests-tab" data-toggle="tab" href="#nav-active-requests" role="tab">Order Requests <span class="badge badge-danger"><%=chef.orders.length%></span></a>
+          <a class="nav-item nav-link" id="nav-order-history-tab" data-toggle="tab" href="#nav-order-history" role="tab">Accepted Orders <span class="badge badge-danger"><%=chef.transactions.length%></span></a>
+          <a class="nav-item nav-link" id="nav-profile-setttings-tab" data-toggle="tab" href="#nav-profile-setttings" role="tab">Your Profile</a>
+        </div>
+      </nav>
+    </div>
+      <!--  NOTES:
+        1. The Content of the Active Postings and Active Requests will be obtained from server and database where all the pictures and text data will be stored for each chef account. When a chef logs in, their actual data will be obtained from server and shown here.
+         2. Active Requests will also be dynamic. When a Customer will request any posting of a chef, chef's Active Requests will be updated accordingly.
+         3. For the buttons Edit and Delete of each Active Posting, pressing any of these 2 buttons will change data stored at the server. Pressing the delete will delete the posting of the chef. Pressing Edit will allow chef to only modify the description of the posting only.
+         4. Pressing Add a New Posting, will allow chef to enter new posting. It will have fields: Name, Price, Description, Picture, Expiry date(as decided by the CHef). All this data will be submitted to the server and stored in database.
+         5. Your Profile will allow user to modify their Profile Information and that will also be updated at the database.
+       -->
+       <div class="tab-content" id="nav-tabContent">
+        <div class="tab-pane fade show active" id="nav-postings" role="tabpanel">
+          <br>
+          <h4>Your Postings</h4>
+          <br>
+          <button id="AddPostingButton" class="btn btn-dark" data-toggle="modal" data-target="#AddPosting">Add New Posting</button>
+          <br>
+          <br>
+          
+          <!-- Add New Posting Modal Form-->
+          <div class="modal fade" id="AddPosting" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+
+              <div class="modal-content">
+                <form action="/chefs/<%= chef._id %>/" method="POST" enctype="multipart/form-data">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Add New Posting</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body">
+
+                    <div class="form-group">
+                      <label for="DishTitle">Dish Title</label>
+                      <input type="text" required class="form-control" name="title" id="DishTitle" placeholder="Enter title for your dish...">
+                    </div>
+                    <div class="form-group">
+                      <label for="DishDescription">Dish Description</label>
+                      <input type="text" required class="form-control" name="description" id="DishDescription" placeholder="Tell everyone how delicious your dish is..">
+                    </div>
+                    <div class="form-group">
+                      <label for="DishPrice">Price your Dish</label>
+                      <input type="text" required class="form-control" name="price" id="DishPrice" placeholder="Overpricing is a sin..">
+                    </div>
+                    <div class="form-group">
+                      <label for="DishImage">Attach an Image</label>
+                      <input type="file" required class="form-control-file" name="image" id="DishImage">
+                    </div>
+
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-success">Post</button>
+                  </div>
+                </form>
+              </div>
+              
+            </div>
+          </div>
+
+
+          <!-- Dynamically loading all dishes from the database-->
+          <div class="card-deck">
+            <% for(let i = 0; i <= chef.dishes.length-1; i++) { %>
+            <!-- <% console.log(chef.dishes[i].imageURL) %> -->
+            <div class="col-3">
+              <div class="card mb-3" >
+                <img class="card-img-top" src="<%=chef.dishes[i].imageURL%>" enctype="multipart/form-data">
+
+                <div class="card-body">
+                  <h5 class="card-title"><%= chef.dishes[i].title %></h5>
+                  <span class="price">$<%= chef.dishes[i].price %></span>
+                  <p class="card-text"><%= chef.dishes[i].description %></p>
+                </div>
+                <button data-toggle="modal" data-target="#EditPost_<%= chef.dishes[i]._id %>" class="btn btn-primary" id="<%= chef.dishes[i]._id %>">Edit</button>
+                <button type="button" id="<%= chef.dishes[i]._id %>" class="btn btn-danger delete-dish-button">Delete</button>
+
+                <!-- <button id="AddPostingButton" class="btn btn-dark" data-toggle="modal" data-target="#AddPosting">Add New Posting</button> -->
+
+              </div>
+
+
+              <!-- Form for editing the  -->
+
+              <div class="modal fade" id="EditPost_<%= chef.dishes[i]._id %>" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+
+                  <div class="modal-content">
+                    <form action="/editposting/<%= chef._id %>/<%= chef.dishes[i]._id %>/" method="POST">
+
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLongTitle">Edit Your Dish</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                        </button>
+                      </div>
+
+                      <div class="modal-body">
+
+                        <div class="form-group">
+                          <label for="DishTitle">Dish Title</label>
+                          <input type="text" class="form-control" name="retitle" id="DishTitle"placeholder="Ops. You cannot change the dish title" disabled>
+
+                        </div>
+                        <div class="form-group">
+                          <label for="ReDishDescription">Dish Description</label>
+                          <input type="text" class="form-control" name="redescription" id="ReDishDescription" placeholder="Re-enter your dish description">
+                        </div>
+                        <div class="form-group">
+                          <label for="ReDishPrice">Price your Dish</label>
+                          <input type="text" class="form-control" name="reprice" id="ReDishPrice" placeholder="Re-enter your dish price">
+                        </div>
+                        
+                      </div>
+
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-success">Edit</button>
+                      </div>
+
+                    </form>
+                  </div>
+
+                </div>
+              </div>
+
+
+              <!-- EDIT THE DISH FORM -->
+
+
+            </div>
+            <% } %>
+          </div>
+
+
+        </div> <!-- Closing "Your Postings Tab" -->
+        
+        <div class="tab-pane fade" id="nav-active-requests" role="tabpanel">
+          <br>
+          <h4>Accepted Orders</h4>
+          <br>
+          <div class="card-deck">
+
+            <% for(let i = 0; i < chef.orders.length; i++) { %>
+            <!-- <div class="row"> -->
+              <div class="col-3">
+
+                <div class="card mb-3">
+                  <!-- FILL IN THE DISH IMAGE URL -->
+                  <img class="card-img-top" src="<%= chef.orders[i].dish.imageURL%>">
+                  <div class="card-body">
+                    <h5 class="card-title"><%= chef.orders[i].dish.title %></h5>
+                    <span class="price">$<%= chef.orders[i].dish.price %></span>
+                    <p class="card-text"><%= chef.orders[i].dish.description %></p>
+                  </div>
+                  <button type="button" class="accept-now-button btn btn-success" id="<%= chef.orders[i]._id %>">Accept</button>
+                  <button type="button" class="reject-now-button btn btn-danger" id="<%= chef.orders[i]._id %>">Reject</button>
+                </div>
+              </div>
+              <% } %>
+            </div>
+          </div>
+          
+
+          <!-- ***** New added. Order history for the chef ****** -->
+          <!-- INVALID DATA FOR NOW - PULL FROM TRANSACTIONS -->
+          <!-- Modify the card - No further buttons -->
+
+          <div class="tab-pane fade" id="nav-order-history" role="tabpanel">
+            <br>
+            <h4>Accepted Orders</h4>
+            <br>
+            <div class="card-deck">
+
+              <% for(let i = 0; i < chef.transactions.length; i++) { %>
+              <!-- <div class="row"> -->
+                <div class="col-3">
+
+                  <div class="card mb-3">
+                    <!-- FILL IN THE DISH IMAGE URL -->
+                    <img class="card-img-top" src="<%= chef.transactions[i].dish.imageURL%>">
+                    <div class="card-body">
+                      <h5 class="card-title"><%= chef.transactions[i].dish.title %></h5>
+                      <span class="price">$<%= chef.transactions[i].dish.price %></span>
+                      <p class="card-text"><%= chef.transactions[i].dish.description %></p>
+                    </div>
+                    <button type="button" class="btn btn-success disabled">Please coordinate pickup</button>
+                  </div>
+                </div>
+                <% } %>
+              </div>
+
+            </div>
+            <!-- *************** -->
+
+
+            <div class="tab-pane fade" id="nav-profile-setttings" role="tabpanel">
+              <br>
+              <h4>Your Profile</h4>
+              <br>
+              <form action="/infoChange/<%= chef._id %>/" method="POST">
+
+  <!--               <div class="form-group row ">
+                  <label class="col-sm-2 col-form-label">Name:</label>
+                  <div class="col-sm-3">
+                    <input type="text" class="form-control form-control-sm mt-1 mt-1" id="name" name="name" disabled>
+                  </div>
+                </div> -->
+                <div class="form-group row">
+                  <label for="phone_edit" class="col-sm-2 col-form-label">Phone:</label>
+                  <div class="col-sm-3">
+                    <input type="tel" class="form-control form-control-sm mt-1" id="phone_edit" name="phone" required>
+                  </div>
+                </div>
+
+                <div class="form-group row">
+                  <label for="postal_edit" class="col-sm-2 col-form-label">Postal Code:</label>
+                  <div class="col-sm-3">
+                    <input type="text" class="form-control form-control-sm mt-1" id="postal_edit" name="postal" required>
+                  </div>
+                </div>
+
+                <div class="form-group row">
+                  <div class="col-sm-10">
+                    <button type="submit" id="request_infoChange_button" class="btn btn-warning">Update Information</button>
+                  </div>
+                </div>
+                <br>
+
+              </form>
+
+              <!-- Already have the form. Send data once the button is pressed -->
+
+
+
+
+                <!-- <div class="form-group row">
+                  <label class="col-sm-2 col-form-label">Email:</label>
+                  <div class="col-sm-3">
+                    <input type="email" class="form-control form-control-sm mt-1" id="email" name="email" disabled>
+                  </div>
+                </div> -->
+                <form action="/changepass/<%= chef._id %>/" method="POST">
+                  <div class="form-group row">
+                    <label for="passwdCurrent" class="col-sm-2 col-form-label">Current Password:</label>
+                    <div class="col-sm-3">
+                      <input type="password" class="form-control form-control-sm mt-1" id="passwdCurrent" name="oldpass" required>
+                    </div>
+                  </div>
+                  <div class="form-group row">
+                    <label for="passwdNew" class="col-sm-2 col-form-label">New Password:</label>
+                    <div class="col-sm-3">
+                      <input type="password" class="form-control form-control-sm mt-1" id="passwdNew" name="newpass" required>
+                    </div>
+                  </div>
+                  <div class="form-group row">
+                    <div class="col-sm-10">
+                      <button type="submit" id="change_pwd_button" class="btn btn-secondary">Change Password</button>
+                    </div>
+                    <br>
+                  </form>
+              </div>
+            </div>
+          </div>
+        </div>
+          <!-- Render head tag partial here -->
+          <% include partials/footer.ejs %>
+          <script>
+
+            $(document).ready(function(){
+
+             $('.delete-dish-button').click(function(){
+          const dishId = $(this).attr('id') //because id attribute of delete button was set to db id of dish
+          const chefId = "<%= chef._id %>"
+          $.ajax({
+            method: "DELETE",
+            url: "/chefs/" + chefId + "/" + dishId,
+            success: function(res) {
+              // alert('Succesfully deleted')
+              // req.flash('success', 'Your Dish was successfully deleted')
+              const redirect = "/chefs/" + chefId
+              window.location.href= redirect
+            },
+            error: function(err){
+              alert("Could not delete. Check console for error message.")
+              console.log(err)
+            }
+          })
+        })
+
+           });
+
+         </script>
+
+         <!-- Script running on accept & Reject Button -->
+
+         <script>
+          $(document).ready(function(){
+
+            $('.accept-now-button').click(function(){
+              // alert('Accept Now');
+          const orderId = $(this).attr('id') //because id attribute of Edit button was set to db id of dish
+          const chefId = "<%= chef._id %>"         
+
+          //Handle the POST REQUEST for making the order
+          $.ajax({
+            method: "POST", //Sending data with Post Request
+            url: "/transactions/" + chefId + "/" + orderId,
+            success: function(res) {
+              alert('You have Accepted the order! Please wait for the customer to call you.')
+              const redirect = "/chefs/" + chefId
+              window.location.href= redirect
+            },
+            error: function(err){
+              alert("Transaction was not completed. Please Re-try")
+              console.log(err)
+            }
+          })
+
+        })
+
+          });
+
+        </script>
+
+        <script>
+          $(document).ready(function(){
+
+            $('.reject-now-button').click(function(){
+              // alert('Reject Now');
+          const orderId = $(this).attr('id') //because id attribute of Edit button was set to db id of dish
+          const chefId = "<%= chef._id %>"         
+
+          //Handle the POST REQUEST for making the order
+          $.ajax({
+            method: "POST", //Sending data with Post Request
+            url: "/rejection/" + chefId + "/" + orderId,
+            success: function(res) {
+              // alert('Rejection Succesful')
+              const redirect = "/chefs/" + chefId
+              window.location.href= redirect
+            },
+            error: function(err){
+              alert("Rejection was not completed. Please Re-try")
+              console.log(err)
+            }
+          })
+
+        })
+
+          });
+
+        </script>
+
+<!-- 
+    <script>
+        $(document).ready(function(){
+
+        $('.edit-dish-button').click(function(){
+          alert('You are editing your dish');
+          const dishId = $(this).attr('id') //because id attribute of edit button was set to db id of dish
+          const chefId = "<%= chef._id %>"         
+          // console.log(`----------------- customerID: ${customerId}`)
+
+          //Handle the Edit REQUEST for making the order
+          // Need to send Dish Name, Description, price.
+          $.ajax({
+            method: "PATCH", //Sending data with Post Request
+            url: "/editposting/" + chefId + "/" + dishId,
+            // data: JSON.stringify (dishObj: {chef.dishes.id(dishId)});
+            success: function(res) {
+              alert('Succesful')
+              const redirect = "/chefs/" + chefId //Reconfirm this
+              window.location.href= redirect
+            },
+            error: function(err){
+              alert("Error has occured while editing the document. Please Re-try")
+              console.log(err)
+            }
+          })
+
+        })
+
+      });
+
+    </script>
+  -->
+  <!-- End Script for Editing the document -->
+
+
+
+  <!--  -->
+
+</body>
+</html>
