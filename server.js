@@ -37,8 +37,6 @@ app.use(bodyParser.urlencoded({ extended: true})) //to parse form data
 app.engine('html', require('ejs').renderFile)
 app.set('view engine', 'ejs') //ejs files are rendered instead of html
 
-//Multer - for uploading images
-const multer = require('multer')
 
 //For user authentication
 const {SHA256} = require('crypto-js')
